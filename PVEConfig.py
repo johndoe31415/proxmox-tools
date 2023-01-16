@@ -1,5 +1,5 @@
 #	proxmox-tools - Tools to aid management of a Proxmox setup
-#	Copyright (C) 2022-2022 Johannes Bauer
+#	Copyright (C) 2022-2023 Johannes Bauer
 #
 #	This file is part of proxmox-tools.
 #
@@ -34,7 +34,12 @@ class PVEConfig():
 
 	@property
 	def mac(self):
-		return self._config_data["net0"]["e1000"].lower()
+		net = self._config_data["net0"]
+		for key in [ "e1000", "virtio" ]:
+			if key in net:
+				return net[key].lower()
+		else:
+			raise Exception(f"Cannot determine MAC address: {net}")
 
 	@classmethod
 	def load_from_file(cls, filename):
@@ -75,6 +80,8 @@ class PVEConfigs():
 	def __getitem__(self, name):
 		return self._by_name[name]
 
+	def __iter__(self):
+		return iter(self._by_name)
 
 if __name__ == "__main__":
 	pve = PVEConfigs()
