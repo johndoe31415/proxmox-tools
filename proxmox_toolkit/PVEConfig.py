@@ -21,12 +21,19 @@
 
 import os
 import re
+from .Tools import Tools
 
 class PVEConfig():
 	_MULTICOMMAND_KEYS = re.compile(r"(net\d+|meta|smbios\d+|scsi\d+|sata\d+)")
+	_MID_REGEX = re.compile(r".*/(?P<mid>\d+)\.conf")
 
-	def __init__(self, config_data):
+	def __init__(self, mid, config_data):
+		self._mid = mid
 		self._config_data = config_data
+
+	@property
+	def mid(self):
+		return self._mid
 
 	@property
 	def name(self):
@@ -34,15 +41,25 @@ class PVEConfig():
 
 	@property
 	def mac(self):
-		net = self._config_data["net0"]
-		for key in [ "e1000", "virtio" ]:
-			if key in net:
-				return net[key].lower()
-		else:
-			raise Exception(f"Cannot determine MAC address: {net}")
+		for netid in range(10):
+			netid = f"net{netid}"
+			if netid not in self._config_data:
+				continue
+
+			net = self._config_data[netid]
+			for key in [ "e1000", "virtio" ]:
+				if key in net:
+					return net[key].lower()
+			else:
+				continue
+		raise Exception(f"No networks in configuration: {self._config_data}")
 
 	@classmethod
 	def load_from_file(cls, filename):
+		result = cls._MID_REGEX.fullmatch(filename)
+		result = result.groupdict()
+		mid = int(result["mid"])
+
 		config_data = { }
 		with open(filename) as f:
 			for line in f:
@@ -50,7 +67,7 @@ class PVEConfig():
 				if cls._MULTICOMMAND_KEYS.fullmatch(key):
 					value = cls._parse_multivalue(value)
 				config_data[key] = value
-		return cls(config_data)
+		return cls(mid = mid, config_data = config_data)
 
 	@classmethod
 	def _parse_multivalue(cls, text):
@@ -65,7 +82,6 @@ class PVEConfig():
 			result[key] = value
 		return result
 
-
 class PVEConfigs():
 	def __init__(self, dirname = "/etc/pve/nodes"):
 		self._configs = { }
@@ -76,6 +92,18 @@ class PVEConfigs():
 					self._configs[full_filename] = PVEConfig.load_from_file(full_filename)
 
 		self._by_name = { config.name: config for config in self._configs.values() }
+
+	def select_by_name(self, machine_pattern):
+		if machine_pattern.startswith("@"):
+			filename = machine_pattern[1:]
+			with open(filename) as f:
+				machine_names = [ line.strip(" \t\r\n") for line in f ]
+		else:
+			regex = re.compile(machine_pattern)
+			machine_names = [ machine_name for machine_name in self if regex.fullmatch(machine_name) ]
+		machine_names.sort(key = Tools.sort_numeric_suffix)
+		for machine_name in machine_names:
+			yield self[machine_name]
 
 	def __getitem__(self, name):
 		return self._by_name[name]
