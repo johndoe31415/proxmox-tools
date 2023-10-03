@@ -23,6 +23,7 @@ import sys
 from .MultiCommand import MultiCommand
 from .DNSMasqConfigAction import DNSMasqConfigAction
 from .StartStopAction import StartStopAction
+from .MultiCloneAction import MultiCloneAction
 
 def main():
 	mc = MultiCommand(description = "Proxmox toolkit", run_method = True)
@@ -44,6 +45,13 @@ def main():
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
 		parser.add_argument("pattern", metavar = "regex/filename", help = "Regex that describes machine names to use. Can be prefixed by '@' and then is interpreted as a file which contains all machine names.")
 	mc.register("startstop", "Start/stop/reboot multiple machines.", genparser, action = StartStopAction)
+
+	def genparser(parser):
+		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
+		parser.add_argument("source_id", type = int, help = "Machine ID to use as a clone source.")
+		parser.add_argument("count", type = int, help = "Numer of clones to create.")
+		parser.add_argument("prefix", help = "Clone name prefix.")
+	mc.register("multiclone", "Clone a machine multiple times.", genparser, action = MultiCloneAction)
 
 	returncode = mc.run(sys.argv[1:])
 	sys.exit(returncode or 0)

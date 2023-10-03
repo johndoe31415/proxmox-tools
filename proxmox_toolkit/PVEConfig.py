@@ -111,6 +111,10 @@ class PVEConfigs():
 	def __iter__(self):
 		return iter(self._by_name)
 
+	@property
+	def values(self):
+		return self._configs.values()
+
 if __name__ == "__main__":
 	pve = PVEConfigs()
 	print(pve["win10-3"].mac)
