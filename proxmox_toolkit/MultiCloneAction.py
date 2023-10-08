@@ -27,7 +27,7 @@ class MultiCloneAction(BaseAction):
 	def run(self):
 		self._pveconfigs = PVEConfigs()
 		max_id = max(pveconfig.mid for pveconfig in self._pveconfigs.values)
-		for mach_no in range(1, self._args.count + 1):
+		for mach_no in range(self._args.start_no, self._args.count + self._args.start_no):
 			mach_name = f"{self._args.prefix}-{mach_no:02d}"
 			new_mid = max_id + mach_no
 			cmd = [ "qm", "clone", str(self._args.source_id), str(new_mid), "--name", mach_name ]

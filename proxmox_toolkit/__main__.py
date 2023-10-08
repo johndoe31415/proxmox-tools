@@ -54,6 +54,7 @@ def main():
 	mc.register("destroy", "Destroy multiple machines.", genparser, action = DestroyAction)
 
 	def genparser(parser):
+		parser.add_argument("-s", "--start-no", metavar = "number", type = int, default = 1, help = "Number of machine to start cloning with. Defaults to %(default)d.")
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
 		parser.add_argument("source_id", type = int, help = "Machine ID to use as a clone source.")
 		parser.add_argument("count", type = int, help = "Numer of clones to create.")
