@@ -27,6 +27,8 @@ from .BaseAction import BaseAction
 class StartStopAction(BaseAction):
 	def _call(self, cmd):
 		try:
+			if self._args.verbose >= 2:
+				print(f"Executing: {' '.join(cmd)}")
 			subprocess.check_call(cmd)
 		except subprocess.CalledProcessError as e:
 			if self._args.ignore_errors:
