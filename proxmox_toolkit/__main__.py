@@ -43,6 +43,7 @@ def main():
 		parser.add_argument("-t", "--action-start", action = "store_true", help = "Start the machine(s).")
 		parser.add_argument("-g", "--gracetime", metavar = "secs", type = float, default = 15.0, help = "Time in seconds between consecutive start actions. Defaults to %(default).1f secs.")
 		parser.add_argument("-y", "--no-confirmation", action = "store_true", help = "Do not ask for confirmation before commencing the requested actions.")
+		parser.add_argument("-i", "--ignore-errors", action = "store_true", help = "Continue even if one action fails.")
 		parser.add_argument("-v", "--verbose", action = "count", default = 0, help = "Increases verbosity. Can be specified multiple times to increase.")
 		parser.add_argument("pattern", metavar = "regex/filename", help = "Regex that describes machine names to use. Can be prefixed by '@' and then is interpreted as a file which contains all machine names.")
 	mc.register("startstop", "Start/stop/reboot multiple machines.", genparser, action = StartStopAction)

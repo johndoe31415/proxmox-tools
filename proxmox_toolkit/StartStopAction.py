@@ -25,6 +25,15 @@ from .PVEConfig import PVEConfigs
 from .BaseAction import BaseAction
 
 class StartStopAction(BaseAction):
+	def _call(self, cmd):
+		try:
+			subprocess.check_call(cmd)
+		except subprocess.CalledProcessError as e:
+			if self._args.ignore_errors:
+				print(f"Ingoring error during execution of {' '.join(cmd)}: {str(e)}")
+			else:
+				raise
+
 	def run(self):
 		actions = [ ]
 		if self._args.action_shutdown:
@@ -56,13 +65,13 @@ class StartStopAction(BaseAction):
 
 		for config in configs:
 			if self._args.action_shutdown:
-				subprocess.check_call([ "qm", "shutdown", str(config.mid) ])
+				self._call([ "qm", "shutdown", str(config.mid) ])
 			if self._args.action_stop:
-				subprocess.check_call([ "qm", "stop", str(config.mid) ])
+				self._call([ "qm", "stop", str(config.mid) ])
 			if self._args.action_reboot:
-				subprocess.check_call([ "qm", "reboot", str(config.mid) ])
+				self._call([ "qm", "reboot", str(config.mid) ])
 			if self._args.action_reset:
-				subprocess.check_call([ "qm", "reset", str(config.mid) ])
+				self._call([ "qm", "reset", str(config.mid) ])
 			if self._args.action_start:
-				subprocess.check_call([ "qm", "start", str(config.mid) ])
+				self._call([ "qm", "start", str(config.mid) ])
 				time.sleep(self._args.gracetime)
